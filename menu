@@ -1,0 +1,94 @@
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtWidgets import QApplication, QMainWindow, QRadioButton, QMessageBox, QCheckBox, QTextEdit
+import sys
+import sqlite3
+
+
+class siparis(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.urunler = {}
+        self.setGeometry(700, 350, 500, 200)
+        self.setWindowTitle("DURKAN RESTORANTI")
+        self.resturant_database()
+        self.initUI()
+
+    def resturant_database(self):
+        self.baglanti = sqlite3.connect("garsongetirdi.db")
+        self.cursor = self.baglanti.cursor()
+        self.cursor.execute("Create Table If not exists siparis(name TEXT,telefon TEXT,hesap INTEGER)")
+        self.baglanti.commit()
+
+    def initUI(self):
+        self.name = QtWidgets.QLabel()
+        self.name.setText("adınız:")
+        self.name_space = QtWidgets.QTextEdit()
+        self.telefon = QtWidgets.QLabel()
+        self.telefon.setText("telefon numaranız:")
+        self.telefon_space = QtWidgets.QTextEdit()
+
+        self.siparis = QtWidgets.QLabel()
+        self.siparis.setText("Siparişiniz nedir?:")
+
+        self.urunler["pizza"] = QCheckBox("PİZZA")
+        self.pizzag = QtWidgets.QLabel()
+        self.pizzag.setPixmap(QtGui.QPixmap("ev-usulu-pizza-yeni.jpg"))
+        self.urunler["patates"] = QCheckBox("patates")
+        self.patatesg = QtWidgets.QLabel()
+        self.patatesg.setPixmap(QtGui.QPixmap("patates.jpg"))
+        self.urunler["cola"] = QCheckBox("içeçek olarak kola alır mısınız?")
+        self.colag = QtWidgets.QLabel()
+        self.colag.setPixmap(QtGui.QPixmap("coca-cola.jpg"))
+        self.hesap = QtWidgets.QLabel()
+        self.hesap.setText("ödemeniz gereken tutar:")
+        self.hesab = QTextEdit()
+        self.alindi = QtWidgets.QPushButton()
+        self.alindi.setText("bunları istiyorum")
+        self.alindi.clicked.connect(self.clicked)
+        self.position(self.name, self.name_space, self.telefon, self.telefon_space, self.siparis, self.urunler["pizza"],
+                      self.pizzag, self.urunler["patates"], self.patatesg, self.urunler["cola"], self.colag, self.hesap,
+                      self.hesab, self.alindi)
+
+    def position(self, *args):
+        hbox = QtWidgets.QHBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
+        for i in args:
+            vbox.addWidget(i)
+        hbox.addStretch()
+        hbox.addLayout(vbox)
+        hbox.addStretch()
+        self.setLayout(hbox)
+
+    def clicked(self):
+        yemekler = {"patates": 15, "pizza": 25, "cola": 8}
+        self.total = 0
+        for urun in self.urunler:
+            if self.urunler[urun].isChecked():
+                self.total += yemekler[urun]
+
+        self.hesab.setText(str(self.total))
+
+        self.siparisi_ekle()
+
+    def siparisi_ekle(self):
+        adi = self.name_space.toPlainText()
+        telefon = self.telefon_space.toPlainText()
+        hesap = self.hesab.toPlainText()
+        bilgiler = (adi, telefon, hesap)
+        query =( """INSERT INTO siparis(name,telefon,hesap) VALUES(?,?,?)""")
+
+        self.cursor.execute(query, bilgiler)
+        self.baglanti.commit()
+
+
+app = QApplication(sys.argv)
+win = siparis()
+win.show()
+sys.exit(app.exec_())
+
+###use ramdom pizza patato cola images
+
+
+
+
+
